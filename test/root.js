@@ -1,23 +1,16 @@
 global.expect = require('expect');
 
-const babel = require('babel-core');
-const jsdom = require('jsdom');
+const fs = require('fs');
+const jsdom = require('mocha-jsdom');
 const path = require('path');
 
-before(function(done) {
-  const babelResult = babel.transformFileSync(path.resolve(__dirname, '..', 'index.js'), {
-    presets: ['es2015']
-  });
+const src = fs.readFileSync(path.resolve(__dirname, '..', 'index.js'), 'utf-8');
 
-  jsdom.env(path.resolve(__dirname, '..', 'index.html'), [], {src: babelResult.code}, (err, window) => {
-    if (err) {
-      return done(err);
-    }
 
-    Object.keys(window).forEach(key => {
-      global[key] = window[key];
-    });
+// FIXME: (pletcher) These are hacks to keep one of
+// the tests running; they obviously won't run in
+// the client, which could be frustrating for students
+global.hasUsedBind = src.indexOf('.bind(') !== -1;
+global.server = true
 
-    return done();
-  });
-});
+jsdom({ src });
